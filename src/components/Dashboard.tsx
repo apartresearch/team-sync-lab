@@ -1,15 +1,16 @@
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { User, Task, WeeklyUpdate } from "@/types";
-import { Shield, ListChecks, MessageSquare } from "lucide-react";
+import { User, Task, WeeklyUpdate, Stage } from "@/types";
+import { Shield, ListChecks, MessageSquare, CheckCircle2 } from "lucide-react";
 
 interface DashboardProps {
   user: User;
+  stages: Stage[];
   tasks: Task[];
   updates: WeeklyUpdate[];
 }
 
-export function Dashboard({ user, tasks, updates }: DashboardProps) {
+export function Dashboard({ user, stages, tasks, updates }: DashboardProps) {
   const completedTasks = tasks.filter(task => task.completed).length;
   const progress = (completedTasks / tasks.length) * 100;
 
@@ -30,12 +31,29 @@ export function Dashboard({ user, tasks, updates }: DashboardProps) {
         <Card className="p-6 space-y-4">
           <div className="flex items-center gap-2">
             <ListChecks className="w-5 h-5 text-primary" />
-            <h2 className="font-semibold">Task Progress</h2>
+            <h2 className="font-semibold">Overall Progress</h2>
           </div>
           <Progress value={progress} className="w-full" />
           <p className="text-sm text-muted-foreground">
             {completedTasks} of {tasks.length} tasks completed
           </p>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-primary" />
+            <h2 className="font-semibold">Stage Status</h2>
+          </div>
+          <div className="space-y-3">
+            {stages.map((stage) => (
+              <div key={stage.id} className="flex items-center justify-between">
+                <span className="text-sm">{stage.name}</span>
+                <span className="text-xs px-2 py-1 rounded-full bg-secondary capitalize">
+                  {stage.status.replace('_', ' ')}
+                </span>
+              </div>
+            ))}
+          </div>
         </Card>
 
         <Card className="p-6 space-y-4">
