@@ -26,7 +26,6 @@ export function Dashboard({ user, stages, tasks, updates, headerActions }: Dashb
       const { data, error } = await supabase
         .from('user_roles')
         .select(`
-          role_id,
           roles (
             name
           )
