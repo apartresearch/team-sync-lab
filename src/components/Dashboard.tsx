@@ -26,18 +26,20 @@ export function Dashboard({ user, stages, tasks, updates, headerActions }: Dashb
       const { data, error } = await supabase
         .from('user_roles')
         .select(`
+          role_id,
           roles (
             name
           )
         `)
-        .eq('user_id', session.user.id);
+        .eq('user_id', session.user.id)
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching user role:', error);
+        return 'No Role';
+      }
       
-      // Handle case where no role is found
-      if (!data || data.length === 0) return 'No Role';
-      
-      return data[0]?.roles?.name || 'Unknown';
+      return data?.roles?.name || 'No Role';
     },
   });
 
