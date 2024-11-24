@@ -74,6 +74,7 @@ export type Database = {
           status: string | null
           student_id: string | null
           title: string
+          type: Database["public"]["Enums"]["deliverable_type"]
           updated_at: string | null
         }
         Insert: {
@@ -86,6 +87,7 @@ export type Database = {
           status?: string | null
           student_id?: string | null
           title: string
+          type?: Database["public"]["Enums"]["deliverable_type"]
           updated_at?: string | null
         }
         Update: {
@@ -98,6 +100,7 @@ export type Database = {
           status?: string | null
           student_id?: string | null
           title?: string
+          type?: Database["public"]["Enums"]["deliverable_type"]
           updated_at?: string | null
         }
         Relationships: [
@@ -193,7 +196,11 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      deliverable_type:
+        | "paper"
+        | "blog_post"
+        | "funding_application"
+        | "hackathon_project"
     }
     CompositeTypes: {
       [_ in never]: never
