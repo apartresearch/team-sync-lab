@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { User, Task, WeeklyUpdate, Stage } from "@/types";
 
-// Temporary mock data until Supabase integration
 const mockUser: User = {
   id: "1",
   name: "John Doe",
@@ -189,7 +188,6 @@ const Index = () => {
             <TaskList
               tasks={tasks}
               stages={stages}
-              userRole={mockUser.role}
               onTaskComplete={handleTaskComplete}
               onRequestReview={handleRequestReview}
             />

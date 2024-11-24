@@ -20,6 +20,9 @@ export function Dashboard({ user, stages, tasks, updates, headerActions }: Dashb
   const { data: userRole } = useQuery({
     queryKey: ['userRole', user.id],
     queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) throw new Error('No user session');
+
       const { data, error } = await supabase
         .from('user_roles')
         .select(`
@@ -28,7 +31,7 @@ export function Dashboard({ user, stages, tasks, updates, headerActions }: Dashb
             name
           )
         `)
-        .eq('user_id', user.id)
+        .eq('user_id', session.user.id)
         .single();
 
       if (error) throw error;
