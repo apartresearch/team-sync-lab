@@ -6,35 +6,59 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
 export function PaperManagement() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  // Check if user is authenticated
+  const { data: session } = useQuery({
+    queryKey: ["session"],
+    queryFn: async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      if (!session) {
+        navigate("/login");
+        return null;
+      }
+      return session;
+    },
+  });
 
   const { data: papers, isLoading } = useQuery({
     queryKey: ["papers"],
     queryFn: async () => {
+      if (!session?.user?.id) return [];
+      
       const { data, error } = await supabase
         .from("papers")
         .select("*")
+        .eq("student_id", session.user.id)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
       return data;
     },
+    enabled: !!session?.user?.id,
   });
 
   const createPaper = useMutation({
     mutationFn: async () => {
+      if (!session?.user?.id) {
+        throw new Error("User not authenticated");
+      }
+
       const { data, error } = await supabase
         .from("papers")
         .insert([
           {
             title,
             description,
-            student_id: (await supabase.auth.getUser()).data.user?.id,
+            student_id: session.user.id,
           },
         ])
         .select()
@@ -65,6 +89,10 @@ export function PaperManagement() {
     e.preventDefault();
     createPaper.mutate();
   };
+
+  if (!session) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">
