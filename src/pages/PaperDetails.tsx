@@ -9,14 +9,19 @@ import { defaultPaperTasks } from "@/config/defaultPaperTasks";
 
 export default function PaperDetails() {
   const { paperId } = useParams();
-  const stages = Object.keys(defaultPaperTasks);
 
-  const { data: paper, isLoading: paperLoading } = useQuery({
-    queryKey: ["paper", paperId],
+  const { data: project, isLoading: projectLoading } = useQuery({
+    queryKey: ["project", paperId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("papers")
-        .select("*")
+        .from("projects")
+        .select(`
+          *,
+          project_members (
+            user_id,
+            role
+          )
+        `)
         .eq("id", paperId)
         .single();
       
@@ -31,17 +36,19 @@ export default function PaperDetails() {
       const { data, error } = await supabase
         .from("paper_tasks")
         .select("*")
-        .eq("paper_id", paperId);
+        .eq("project_id", paperId);
       
       if (error) throw error;
       return data;
     },
   });
 
-  if (paperLoading || tasksLoading) {
+  if (projectLoading || tasksLoading) {
     return <div>Loading...</div>;
   }
 
+  const deliverableType = project?.type || 'paper';
+  const stages = Object.keys(defaultPaperTasks[deliverableType]);
   const completedTasks = tasks?.filter(task => task.status === "completed")?.length || 0;
   const totalTasks = tasks?.length || 0;
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
@@ -50,10 +57,10 @@ export default function PaperDetails() {
     <div className="container mx-auto p-6 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>{paper?.title}</CardTitle>
+          <CardTitle>{project?.title}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground mb-4">{paper?.description}</p>
+          <p className="text-muted-foreground mb-4">{project?.description}</p>
           <div className="space-y-2">
             <p className="text-sm font-medium">Overall Progress</p>
             <Progress value={progress} />
@@ -64,13 +71,13 @@ export default function PaperDetails() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue={paper?.stage || "overview"} className="space-y-4">
+      <Tabs defaultValue={project?.stage || "overview"} className="space-y-4">
         <TabsList className="w-full justify-start">
           {stages.map((stage) => (
             <TabsTrigger 
               key={stage} 
               value={stage}
-              className={stage === paper?.stage ? "bg-primary text-primary-foreground" : ""}
+              className={stage === project?.stage ? "bg-primary text-primary-foreground" : ""}
             >
               {stage.charAt(0).toUpperCase() + stage.slice(1)}
             </TabsTrigger>
@@ -82,7 +89,7 @@ export default function PaperDetails() {
             <PaperTodoList 
               paperId={paperId!} 
               currentStage={stage} 
-              isCurrentStage={stage === paper?.stage}
+              isCurrentStage={stage === project?.stage}
             />
           </TabsContent>
         ))}

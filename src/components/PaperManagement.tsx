@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
-type Paper = Database['public']['Tables']['papers']['Row'];
+type Project = Database['public']['Tables']['projects']['Row'];
 type DeliverableType = 'paper' | 'blog_post' | 'funding_application' | 'hackathon_project';
 
 const DELIVERABLE_TYPES: { value: DeliverableType; label: string }[] = [
@@ -39,19 +39,19 @@ export function PaperManagement() {
     },
   });
 
-  const { data: papers, isLoading } = useQuery({
-    queryKey: ["papers"],
+  const { data: projects, isLoading } = useQuery({
+    queryKey: ["projects"],
     queryFn: async () => {
       if (!session?.user?.id) return [];
       
       const { data, error } = await supabase
-        .from("papers")
+        .from("projects")
         .select("*")
         .eq("student_id", session.user.id)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data as Paper[];
+      return data as Project[];
     },
     enabled: !!session?.user?.id,
   });
@@ -62,7 +62,7 @@ export function PaperManagement() {
         throw new Error("User not authenticated");
       }
 
-      // Create all deliverable types for this project
+      // Create project for each deliverable type
       const deliverables = DELIVERABLE_TYPES.map(type => ({
         title: `${title} - ${type.label}`,
         description,
@@ -72,16 +72,32 @@ export function PaperManagement() {
         type: type.value,
       }));
 
-      const { data, error } = await supabase
-        .from("papers")
+      const { data: projectsData, error: projectsError } = await supabase
+        .from("projects")
         .insert(deliverables)
         .select();
 
-      if (error) throw error;
-      return data;
+      if (projectsError) throw projectsError;
+
+      // Create project_members entries for each project
+      if (projectsData) {
+        const memberEntries = projectsData.map(project => ({
+          project_id: project.id,
+          user_id: session.user.id,
+          role: 'owner'
+        }));
+
+        const { error: membersError } = await supabase
+          .from("project_members")
+          .insert(memberEntries);
+
+        if (membersError) throw membersError;
+      }
+
+      return projectsData;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["papers"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
       setTitle("");
       setDescription("");
       toast({
@@ -107,15 +123,15 @@ export function PaperManagement() {
     return null;
   }
 
-  // Group papers by their base title (removing the type suffix)
-  const groupedPapers = papers?.reduce((acc, paper) => {
-    const baseTitle = paper.title.split(' - ')[0];
+  // Group projects by their base title (removing the type suffix)
+  const groupedProjects = projects?.reduce((acc, project) => {
+    const baseTitle = project.title.split(' - ')[0];
     if (!acc[baseTitle]) {
       acc[baseTitle] = [];
     }
-    acc[baseTitle].push(paper);
+    acc[baseTitle].push(project);
     return acc;
-  }, {} as Record<string, Paper[]>);
+  }, {} as Record<string, Project[]>);
 
   return (
     <div className="space-y-6">
@@ -152,7 +168,7 @@ export function PaperManagement() {
         {isLoading ? (
           <p>Loading projects...</p>
         ) : (
-          Object.entries(groupedPapers || {}).map(([projectTitle, projectPapers]) => (
+          Object.entries(groupedProjects || {}).map(([projectTitle, projectItems]) => (
             <Card 
               key={projectTitle}
               className="hover:shadow-lg transition-shadow"
@@ -163,22 +179,22 @@ export function PaperManagement() {
               <CardContent>
                 <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">
-                    {projectPapers[0]?.description}
+                    {projectItems[0]?.description}
                   </p>
                   <div className="space-y-1">
-                    {projectPapers.map((paper) => {
-                      const typeInfo = DELIVERABLE_TYPES.find(t => t.value === paper.type);
+                    {projectItems.map((project) => {
+                      const typeInfo = DELIVERABLE_TYPES.find(t => t.value === project.type);
                       return (
                         <div
-                          key={paper.id}
+                          key={project.id}
                           className="flex items-center justify-between p-2 rounded-lg bg-secondary/50 cursor-pointer hover:bg-secondary"
-                          onClick={() => navigate(`/paper/${paper.id}`)}
+                          onClick={() => navigate(`/paper/${project.id}`)}
                         >
                           <span className="text-sm font-medium">
                             {typeInfo?.label}
                           </span>
                           <span className="text-xs px-2 py-1 rounded-full bg-background">
-                            {paper.stage}
+                            {project.stage}
                           </span>
                         </div>
                       );

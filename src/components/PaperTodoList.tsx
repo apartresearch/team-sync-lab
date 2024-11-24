@@ -26,7 +26,7 @@ export function PaperTodoList({ paperId, currentStage, isCurrentStage }: PaperTo
       const { data, error } = await supabase
         .from("paper_tasks")
         .select("*")
-        .eq("paper_id", paperId)
+        .eq("project_id", paperId)
         .eq("stage", currentStage);
       
       if (error) throw error;
@@ -36,23 +36,23 @@ export function PaperTodoList({ paperId, currentStage, isCurrentStage }: PaperTo
 
   const createDefaultTasks = useMutation({
     mutationFn: async () => {
-      const { data: paperData } = await supabase
-        .from("papers")
+      const { data: projectData } = await supabase
+        .from("projects")
         .select("student_id, type")
         .eq("id", paperId)
         .single();
 
-      if (!paperData) throw new Error("Paper not found");
+      if (!projectData) throw new Error("Project not found");
 
-      const deliverableType = paperData.type || 'paper';
+      const deliverableType = projectData.type || 'paper';
       const defaultTasks = defaultPaperTasks[deliverableType][currentStage] || [];
       
       const tasksToCreate = defaultTasks.map(task => ({
-        paper_id: paperId,
+        project_id: paperId,
         title: task.title,
         description: task.description,
         stage: currentStage,
-        assigned_to: paperData.student_id,
+        assigned_to: projectData.student_id,
         status: "pending"
       }));
 
@@ -89,15 +89,15 @@ export function PaperTodoList({ paperId, currentStage, isCurrentStage }: PaperTo
 
   const advanceStage = useMutation({
     mutationFn: async () => {
-      const { data: paperData } = await supabase
-        .from("papers")
+      const { data: projectData } = await supabase
+        .from("projects")
         .select("type")
         .eq("id", paperId)
         .single();
 
-      if (!paperData) throw new Error("Paper not found");
+      if (!projectData) throw new Error("Project not found");
 
-      const deliverableType = paperData.type || 'paper';
+      const deliverableType = projectData.type || 'paper';
       const stages = Object.keys(defaultPaperTasks[deliverableType]);
       const currentIndex = stages.indexOf(currentStage);
       const nextStage = stages[currentIndex + 1];
@@ -105,7 +105,7 @@ export function PaperTodoList({ paperId, currentStage, isCurrentStage }: PaperTo
       if (!nextStage) throw new Error("Already at final stage");
 
       const { error } = await supabase
-        .from("papers")
+        .from("projects")
         .update({ stage: nextStage })
         .eq("id", paperId);
       
@@ -115,7 +115,7 @@ export function PaperTodoList({ paperId, currentStage, isCurrentStage }: PaperTo
       queryClient.invalidateQueries({ queryKey: ["paper", paperId] });
       toast({
         title: "Success",
-        description: "Paper advanced to next stage",
+        description: "Project advanced to next stage",
       });
     },
   });
