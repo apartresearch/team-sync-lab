@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
+import { defaultPaperTasks } from "@/config/defaultPaperTasks";
 
 interface PaperTodoListProps {
   paperId: string;
@@ -18,7 +19,7 @@ export function PaperTodoList({ paperId, currentStage }: PaperTodoListProps) {
   const { data: userRole } = useUserRole();
   const isAdvisor = userRole === "advisor";
 
-  const { data: tasks } = useQuery({
+  const { data: tasks, isLoading } = useQuery({
     queryKey: ["paper-tasks", paperId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -31,6 +32,43 @@ export function PaperTodoList({ paperId, currentStage }: PaperTodoListProps) {
       return data;
     },
   });
+
+  const createDefaultTasks = useMutation({
+    mutationFn: async () => {
+      const { data: paperData } = await supabase
+        .from("papers")
+        .select("student_id")
+        .eq("id", paperId)
+        .single();
+
+      if (!paperData) throw new Error("Paper not found");
+
+      const defaultTasks = defaultPaperTasks[currentStage as keyof typeof defaultPaperTasks];
+      const tasksToCreate = defaultTasks.map(task => ({
+        paper_id: paperId,
+        title: task.title,
+        description: task.description,
+        stage: currentStage,
+        assigned_to: paperData.student_id,
+        status: "pending"
+      }));
+
+      const { error } = await supabase
+        .from("paper_tasks")
+        .insert(tasksToCreate);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["paper-tasks", paperId] });
+    },
+  });
+
+  useEffect(() => {
+    if (!isLoading && (!tasks || tasks.length === 0)) {
+      createDefaultTasks.mutate();
+    }
+  }, [tasks, isLoading]);
 
   const updateTaskStatus = useMutation({
     mutationFn: async ({ taskId, completed }: { taskId: string; completed: boolean }) => {
@@ -72,6 +110,10 @@ export function PaperTodoList({ paperId, currentStage }: PaperTodoListProps) {
 
   const allTasksCompleted = tasks?.every(task => task.status === "completed");
 
+  if (isLoading) {
+    return <div>Loading tasks...</div>;
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -79,17 +121,22 @@ export function PaperTodoList({ paperId, currentStage }: PaperTodoListProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {tasks?.map((task) => (
-          <div key={task.id} className="flex items-center space-x-2">
-            <Checkbox
-              checked={task.status === "completed"}
-              onCheckedChange={(checked) => {
-                updateTaskStatus.mutate({
-                  taskId: task.id,
-                  completed: checked as boolean,
-                });
-              }}
-            />
-            <span className="flex-1">{task.title}</span>
+          <div key={task.id} className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                checked={task.status === "completed"}
+                onCheckedChange={(checked) => {
+                  updateTaskStatus.mutate({
+                    taskId: task.id,
+                    completed: checked as boolean,
+                  });
+                }}
+              />
+              <span className="font-medium">{task.title}</span>
+            </div>
+            {task.description && (
+              <p className="text-sm text-muted-foreground ml-6">{task.description}</p>
+            )}
           </div>
         ))}
 
