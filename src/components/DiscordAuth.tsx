@@ -19,16 +19,18 @@ export function DiscordAuth() {
       });
 
       if (error) {
+        console.error('Discord OAuth Error:', error);
         toast({
           title: "Authentication Error",
-          description: error.message,
+          description: `Please try again. Details: ${error.message}`,
           variant: "destructive",
         });
       }
     } catch (error) {
+      console.error('Unexpected Discord Login Error:', error);
       toast({
         title: "Unexpected Error",
-        description: "Failed to connect with Discord",
+        description: "Failed to initiate Discord login. Please check your browser settings and try again.",
         variant: "destructive",
       });
     }
