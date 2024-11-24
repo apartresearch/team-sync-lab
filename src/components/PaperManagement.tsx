@@ -18,7 +18,6 @@ export function PaperManagement() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Check if user is authenticated
   const { data: session } = useQuery({
     queryKey: ["session"],
     queryFn: async () => {
@@ -32,7 +31,6 @@ export function PaperManagement() {
     },
   });
 
-  // Fetch papers only if user is authenticated
   const { data: papers, isLoading } = useQuery({
     queryKey: ["papers"],
     queryFn: async () => {
@@ -64,6 +62,7 @@ export function PaperManagement() {
             description,
             student_id: session.user.id,
             status: 'draft',
+            stage: 'overview',
           },
         ])
         .select()
@@ -135,13 +134,18 @@ export function PaperManagement() {
           <p>Loading papers...</p>
         ) : (
           papers?.map((paper) => (
-            <Card key={paper.id}>
+            <Card 
+              key={paper.id} 
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => navigate(`/paper/${paper.id}`)}
+            >
               <CardHeader>
                 <CardTitle>{paper.title}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">{paper.description}</p>
                 <p className="text-sm mt-2">Status: {paper.status}</p>
+                <p className="text-sm">Stage: {paper.stage}</p>
               </CardContent>
             </Card>
           ))

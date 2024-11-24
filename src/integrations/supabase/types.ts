@@ -17,6 +17,7 @@ export type Database = {
           due_date: string | null
           id: string
           paper_id: string | null
+          stage: string
           status: string | null
           title: string
           updated_at: string | null
@@ -28,6 +29,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           paper_id?: string | null
+          stage?: string
           status?: string | null
           title: string
           updated_at?: string | null
@@ -39,6 +41,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           paper_id?: string | null
+          stage?: string
           status?: string | null
           title?: string
           updated_at?: string | null
@@ -67,6 +70,7 @@ export type Database = {
           description: string | null
           field: string | null
           id: string
+          stage: string
           status: string | null
           student_id: string | null
           title: string
@@ -78,6 +82,7 @@ export type Database = {
           description?: string | null
           field?: string | null
           id?: string
+          stage?: string
           status?: string | null
           student_id?: string | null
           title: string
@@ -89,6 +94,7 @@ export type Database = {
           description?: string | null
           field?: string | null
           id?: string
+          stage?: string
           status?: string | null
           student_id?: string | null
           title?: string
