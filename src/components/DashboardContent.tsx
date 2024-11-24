@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { User, WeeklyUpdate, Stage } from "@/types";
+import { User, WeeklyUpdate, Stage, Task } from "@/types";
 import { UpdatesFeed } from "@/components/UpdatesFeed";
 import { PaperManagement } from "@/components/PaperManagement";
 import { AchievementsTab } from "@/components/AchievementsTab";
@@ -9,12 +9,14 @@ interface DashboardContentProps {
   currentUser: User;
   initialStages: Stage[];
   initialUpdates: WeeklyUpdate[];
+  initialTasks: Task[];
 }
 
 export function DashboardContent({ 
   currentUser, 
   initialStages, 
-  initialUpdates 
+  initialUpdates,
+  initialTasks 
 }: DashboardContentProps) {
   const [stages, setStages] = useState(initialStages);
   const [updates, setUpdates] = useState(initialUpdates);
