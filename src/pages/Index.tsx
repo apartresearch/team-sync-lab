@@ -7,6 +7,7 @@ import { PaperManagement } from "@/components/PaperManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { User, Task, WeeklyUpdate, Stage } from "@/types";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 const mockUser: User = {
   id: "1",
@@ -109,9 +110,17 @@ const mockUpdates: WeeklyUpdate[] = [
 ];
 
 const Index = () => {
+  // Add authentication check
+  const { isLoading } = useRequireAuth();
+
   const [tasks, setTasks] = useState(mockTasks);
   const [stages, setStages] = useState(mockStages);
   const [updates, setUpdates] = useState(mockUpdates);
+
+  // If still loading auth state, show nothing to prevent flash of content
+  if (isLoading) {
+    return null;
+  }
 
   const handleTaskComplete = (taskId: string) => {
     setTasks(tasks.map(task => 

@@ -1,7 +1,24 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSessionContext } from "@supabase/auth-helpers-react";
 import { DiscordAuth } from "@/components/DiscordAuth";
 import { Card } from "@/components/ui/card";
 
 export default function Login() {
+  const { session, isLoading } = useSessionContext();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (session && !isLoading) {
+      navigate('/');
+    }
+  }, [session, isLoading, navigate]);
+
+  // If still loading auth state, show nothing to prevent flash of content
+  if (isLoading) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="p-8 space-y-6 w-full max-w-md">
