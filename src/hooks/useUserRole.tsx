@@ -1,16 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { useSession } from "@supabase/auth-helpers-react";
 
 export function useUserRole(userId?: string) {
-  return useQuery({
-    queryKey: ['userRole', userId],
-    queryFn: async () => {
-      // Get current session if no userId provided
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user?.id) throw new Error('No user session');
+  const session = useSession();
+  const currentUserId = userId || session?.user?.id;
 
-      // Use provided userId or fallback to current user's id
-      const targetUserId = userId || session.user.id;
+  return useQuery({
+    queryKey: ['userRole', currentUserId],
+    queryFn: async () => {
+      if (!currentUserId) return 'student';
 
       const { data, error } = await supabase
         .from('user_roles')
@@ -20,7 +19,7 @@ export function useUserRole(userId?: string) {
             name
           )
         `)
-        .eq('user_id', targetUserId)
+        .eq('user_id', currentUserId)
         .single();
 
       if (error) {
@@ -30,6 +29,6 @@ export function useUserRole(userId?: string) {
       
       return data?.roles?.name || 'student';
     },
-    enabled: true,
+    enabled: !!currentUserId,
   });
 }
