@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Dashboard } from "@/components/Dashboard";
 import { TaskList } from "@/components/TaskList";
@@ -7,7 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Task, WeeklyUpdate, Stage } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
+
+// Temporary mock data until Supabase integration
+const mockUser: User = {
+  id: "1",
+  name: "John Doe",
+  role: "researcher",
+  avatarUrl: "https://github.com/shadcn.png"
+};
 
 const mockStages: Stage[] = [
   {
@@ -106,47 +113,7 @@ const Index = () => {
   const [tasks, setTasks] = useState(mockTasks);
   const [stages, setStages] = useState(mockStages);
   const [updates, setUpdates] = useState(mockUpdates);
-  const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        try {
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('username, full_name')
-            .eq('id', session.user.id)
-            .maybeSingle();
-
-          if (error) {
-            toast({
-              title: "Error",
-              description: "Failed to fetch profile",
-              variant: "destructive",
-            });
-            return;
-          }
-
-          setUser({
-            id: session.user.id,
-            name: profile?.username || profile?.full_name || 'User',
-            role: 'researcher',
-            avatarUrl: session.user.user_metadata.avatar_url
-          });
-        } catch (error) {
-          toast({
-            title: "Error",
-            description: "An unexpected error occurred",
-            variant: "destructive",
-          });
-        }
-      }
-    };
-
-    fetchUserProfile();
-  }, [toast]);
 
   const handleTaskComplete = (taskId: string) => {
     setTasks(tasks.map(task => 
@@ -170,7 +137,7 @@ const Index = () => {
   const handlePostUpdate = (content: string) => {
     const newUpdate: WeeklyUpdate = {
       id: Date.now().toString(),
-      userId: user?.id || '',
+      userId: mockUser.id,
       content,
       createdAt: new Date().toISOString(),
       ratings: []
@@ -181,13 +148,13 @@ const Index = () => {
   const handleRateUpdate = (updateId: string, rating: number) => {
     setUpdates(updates.map(update => {
       if (update.id === updateId) {
-        const existingRating = update.ratings.findIndex(r => r.userId === user?.id);
+        const existingRating = update.ratings.findIndex(r => r.userId === mockUser.id);
         const newRatings = [...update.ratings];
         
         if (existingRating >= 0) {
-          newRatings[existingRating] = { userId: user?.id || '', value: rating };
+          newRatings[existingRating] = { userId: mockUser.id, value: rating };
         } else {
-          newRatings.push({ userId: user?.id || '', value: rating });
+          newRatings.push({ userId: mockUser.id, value: rating });
         }
         
         return { ...update, ratings: newRatings };
@@ -196,19 +163,17 @@ const Index = () => {
     }));
   };
 
-  if (!user) return null;
-
   return (
     <div className="min-h-screen bg-background">
       <Dashboard 
-        user={user}
+        user={mockUser} 
         stages={stages} 
         tasks={tasks} 
         updates={updates} 
         headerActions={
           <Link to="/profile">
-            <Button variant="outline">
-              Edit Profile
+            <Button variant="outline" className="ml-4">
+              View Profile
             </Button>
           </Link>
         } 
@@ -225,7 +190,7 @@ const Index = () => {
             <TaskList
               tasks={tasks}
               stages={stages}
-              userRole={user.role}
+              userRole={mockUser.role}
               onTaskComplete={handleTaskComplete}
               onRequestReview={handleRequestReview}
             />
@@ -234,7 +199,7 @@ const Index = () => {
           <TabsContent value="updates">
             <UpdatesFeed
               updates={updates}
-              currentUser={user}
+              currentUser={mockUser}
               onPostUpdate={handlePostUpdate}
               onRateUpdate={handleRateUpdate}
             />
