@@ -246,6 +246,10 @@ export type Database = {
         | "first_submission"
         | "collaboration_started"
         | "mentor_assigned"
+        | "paper_rejected"
+        | "workshop_accepted"
+        | "conference_accepted"
+        | "best_paper"
       deliverable_type:
         | "paper"
         | "blog_post"

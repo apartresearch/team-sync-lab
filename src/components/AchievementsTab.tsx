@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { Award, Trophy, Medal, Star, BookmarkCheck } from "lucide-react";
+import { Award, Trophy, Medal, Star, BookmarkCheck, XCircle, Check, Crown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 interface Achievement {
@@ -21,6 +21,10 @@ const achievementIcons: Record<string, React.ComponentType<any>> = {
   first_submission: Star,
   collaboration_started: BookmarkCheck,
   mentor_assigned: Award,
+  paper_rejected: XCircle,
+  workshop_accepted: Check,
+  conference_accepted: Trophy,
+  best_paper: Crown,
 };
 
 // Define all possible achievements
@@ -80,6 +84,34 @@ const defaultAchievements: Omit<Achievement, 'earned_at'>[] = [
     points: 25,
     title: 'Mentee',
     description: 'Got assigned your first research mentor'
+  },
+  {
+    id: 'paper_rejected',
+    type: 'paper_rejected',
+    points: 20,
+    title: 'Fail Faster',
+    description: 'Successfully get a paper rejected from a workshop or conference'
+  },
+  {
+    id: 'workshop_accepted',
+    type: 'workshop_accepted',
+    points: 80,
+    title: 'Workshop Warrior',
+    description: 'Had your first paper accepted at a workshop'
+  },
+  {
+    id: 'conference_accepted',
+    type: 'conference_accepted',
+    points: 120,
+    title: 'Champion',
+    description: 'Got your first paper accepted at a conference main track'
+  },
+  {
+    id: 'best_paper',
+    type: 'best_paper',
+    points: 200,
+    title: 'Legend',
+    description: 'Received a best paper award at a machine learning conference'
   }
 ];
 
