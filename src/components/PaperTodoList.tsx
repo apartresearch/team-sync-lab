@@ -38,13 +38,15 @@ export function PaperTodoList({ paperId, currentStage, isCurrentStage }: PaperTo
     mutationFn: async () => {
       const { data: paperData } = await supabase
         .from("papers")
-        .select("student_id")
+        .select("student_id, type")
         .eq("id", paperId)
         .single();
 
       if (!paperData) throw new Error("Paper not found");
 
-      const defaultTasks = defaultPaperTasks[currentStage as keyof typeof defaultPaperTasks];
+      const deliverableType = paperData.type || 'paper';
+      const defaultTasks = defaultPaperTasks[deliverableType][currentStage] || [];
+      
       const tasksToCreate = defaultTasks.map(task => ({
         paper_id: paperId,
         title: task.title,
@@ -87,7 +89,16 @@ export function PaperTodoList({ paperId, currentStage, isCurrentStage }: PaperTo
 
   const advanceStage = useMutation({
     mutationFn: async () => {
-      const stages = Object.keys(defaultPaperTasks);
+      const { data: paperData } = await supabase
+        .from("papers")
+        .select("type")
+        .eq("id", paperId)
+        .single();
+
+      if (!paperData) throw new Error("Paper not found");
+
+      const deliverableType = paperData.type || 'paper';
+      const stages = Object.keys(defaultPaperTasks[deliverableType]);
       const currentIndex = stages.indexOf(currentStage);
       const nextStage = stages[currentIndex + 1];
 
