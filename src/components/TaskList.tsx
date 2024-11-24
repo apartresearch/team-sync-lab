@@ -4,8 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Lock, ChevronDown, ChevronUp } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface TaskListProps {
   tasks: Task[];
@@ -17,28 +16,7 @@ interface TaskListProps {
 export function TaskList({ tasks, stages, onTaskComplete, onRequestReview }: TaskListProps) {
   const [expandedStages, setExpandedStages] = useState<string[]>(stages.map(s => s.id));
   const roleLevel = { student: 0, researcher: 1, advisor: 2 };
-
-  const { data: userRole } = useQuery({
-    queryKey: ['userRole'],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user?.id) throw new Error('No user session');
-
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select(`
-          role_id,
-          roles (
-            name
-          )
-        `)
-        .eq('user_id', session.user.id)
-        .single();
-
-      if (error) throw error;
-      return data?.roles?.name?.toLowerCase() || 'student';
-    },
-  });
+  const { data: userRole } = useUserRole();
 
   const toggleStage = (stageId: string) => {
     setExpandedStages(prev =>

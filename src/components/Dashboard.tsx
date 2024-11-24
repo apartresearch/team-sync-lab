@@ -2,8 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { User, Task, WeeklyUpdate, Stage } from "@/types";
 import { Shield, ListChecks, MessageSquare, CheckCircle2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface DashboardProps {
   user: User;
@@ -16,32 +15,7 @@ interface DashboardProps {
 export function Dashboard({ user, stages, tasks, updates, headerActions }: DashboardProps) {
   const completedTasks = tasks.filter(task => task.completed).length;
   const progress = (completedTasks / tasks.length) * 100;
-
-  const { data: userRole } = useQuery({
-    queryKey: ['userRole', user.id],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user?.id) throw new Error('No user session');
-
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select(`
-          role_id,
-          roles (
-            name
-          )
-        `)
-        .eq('user_id', session.user.id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching user role:', error);
-        return 'No Role';
-      }
-      
-      return data?.roles?.name || 'No Role';
-    },
-  });
+  const { data: userRole } = useUserRole(user.id);
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
