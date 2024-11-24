@@ -13,18 +13,29 @@ export function DiscordAuth() {
   const handleDiscordLogin = async () => {
     try {
       if (isDevelopment) {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        // First create the user if it doesn't exist
+        const { error: signUpError } = await supabase.auth.signUp({
           email: 'dev@example.com',
           password: 'development-password',
           options: {
-            shouldCreateUser: true,
             data: {
               email_confirmed_at: new Date().toISOString(),
             }
           }
         });
 
-        if (error) throw error;
+        // Ignore "User already registered" error
+        if (signUpError && !signUpError.message.includes('User already registered')) {
+          throw signUpError;
+        }
+
+        // Then sign in
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: 'dev@example.com',
+          password: 'development-password',
+        });
+
+        if (signInError) throw signInError;
 
         // If we get here, we're signed in successfully
         navigate('/');
