@@ -13,36 +13,25 @@ export function DiscordAuth() {
   const handleDiscordLogin = async () => {
     try {
       if (isDevelopment) {
-        // In development, use a direct sign-in with a mock user
+        // First, try to create the development account
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: 'dev@example.com',
+          password: 'development-password',
+        });
+
+        if (signUpError && !signUpError.message.includes('User already registered')) {
+          throw signUpError;
+        }
+
+        // Now try to sign in
         const { data, error } = await supabase.auth.signInWithPassword({
           email: 'dev@example.com',
           password: 'development-password',
         });
 
-        if (error) {
-          // If the user doesn't exist, create it
-          if (error.message.includes('Invalid login credentials')) {
-            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-              email: 'dev@example.com',
-              password: 'development-password',
-            });
+        if (error) throw error;
 
-            if (signUpError) {
-              throw signUpError;
-            }
-
-            toast({
-              title: "Development Account Created",
-              description: "You can now use the development account to test the application.",
-            });
-            
-            // Directly navigate to callback to handle role assignment
-            navigate('/auth/callback');
-            return;
-          }
-          throw error;
-        }
-
+        // If we get here, we're signed in successfully
         navigate('/');
       } else {
         // In production, use Discord OAuth
