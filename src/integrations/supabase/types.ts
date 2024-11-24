@@ -57,7 +57,7 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
-          project_id: string | null
+          paper_id: string | null
           stage: string
           status: string | null
           title: string
@@ -69,7 +69,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
-          project_id?: string | null
+          paper_id?: string | null
           stage?: string
           status?: string | null
           title: string
@@ -81,7 +81,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
-          project_id?: string | null
+          paper_id?: string | null
           stage?: string
           status?: string | null
           title?: string
@@ -96,75 +96,15 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "paper_tasks_project_id_fkey"
-            columns: ["project_id"]
+            foreignKeyName: "paper_tasks_paper_id_fkey"
+            columns: ["paper_id"]
             isOneToOne: false
-            referencedRelation: "projects"
+            referencedRelation: "papers"
             referencedColumns: ["id"]
           },
         ]
       }
-      profiles: {
-        Row: {
-          created_at: string | null
-          full_name: string | null
-          id: string
-          username: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          full_name?: string | null
-          id: string
-          username?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          full_name?: string | null
-          id?: string
-          username?: string | null
-        }
-        Relationships: []
-      }
-      project_members: {
-        Row: {
-          created_at: string | null
-          id: string
-          project_id: string | null
-          role: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          project_id?: string | null
-          role?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          project_id?: string | null
-          role?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "project_members_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "project_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      projects: {
+      papers: {
         Row: {
           advisor_id: string | null
           created_at: string | null
@@ -220,6 +160,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          full_name: string | null
+          id: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          username?: string | null
+        }
+        Relationships: []
       }
       roles: {
         Row: {
