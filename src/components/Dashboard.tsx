@@ -8,9 +8,10 @@ interface DashboardProps {
   stages: Stage[];
   tasks: Task[];
   updates: WeeklyUpdate[];
+  headerActions?: React.ReactNode;
 }
 
-export function Dashboard({ user, stages, tasks, updates }: DashboardProps) {
+export function Dashboard({ user, stages, tasks, updates, headerActions }: DashboardProps) {
   const completedTasks = tasks.filter(task => task.completed).length;
   const progress = (completedTasks / tasks.length) * 100;
 
@@ -21,9 +22,12 @@ export function Dashboard({ user, stages, tasks, updates }: DashboardProps) {
           <h1 className="text-3xl font-bold">Welcome back, {user.name}</h1>
           <p className="text-muted-foreground">Track your research progress</p>
         </div>
-        <div className="flex items-center gap-2 bg-secondary px-4 py-2 rounded-lg">
-          <Shield className="w-4 h-4" />
-          <span className="capitalize">{user.role}</span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 bg-secondary px-4 py-2 rounded-lg">
+            <Shield className="w-4 h-4" />
+            <span className="capitalize">{user.role}</span>
+          </div>
+          {headerActions}
         </div>
       </div>
 
