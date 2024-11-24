@@ -31,7 +31,6 @@ export function PaperManagement() {
       const { data, error } = await supabase
         .from("projects")
         .select("*")
-        .eq("student_id", session.user.id)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
