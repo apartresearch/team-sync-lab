@@ -29,6 +29,7 @@ export function PaperManagement() {
     },
   });
 
+  // Fetch papers only if user is authenticated
   const { data: papers, isLoading } = useQuery({
     queryKey: ["papers"],
     queryFn: async () => {
