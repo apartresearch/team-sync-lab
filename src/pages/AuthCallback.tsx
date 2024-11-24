@@ -8,11 +8,20 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Handle hash fragment if present (for implicit grant)
-        if (window.location.hash) {
-          const { data: { session }, error } = await supabase.auth.getSession();
-          
-          if (error) throw error;
+        // Get the current URL hash
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+
+        if (accessToken && refreshToken) {
+          // Set the session using the tokens from the URL
+          const { data: { session }, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+
+          if (sessionError) throw sessionError;
+
           if (session) {
             // Insert the user role if it doesn't exist
             const { error: roleError } = await supabase
@@ -32,7 +41,8 @@ export default function AuthCallback() {
               console.error('Error setting user role:', roleError);
             }
 
-            // Redirect to home page
+            // Clear the URL hash and redirect to home page
+            window.location.hash = '';
             navigate('/', { replace: true });
             return;
           }
