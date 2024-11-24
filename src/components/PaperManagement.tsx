@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
-type Paper = Database['public']['Tables']['papers']['Row'];
+type Project = Database['public']['Tables']['projects']['Row'];
 type DeliverableType = 'paper' | 'blog_post' | 'funding_application' | 'hackathon_project';
 
 const DELIVERABLE_TYPES: { value: DeliverableType; label: string }[] = [
@@ -39,19 +39,18 @@ export function PaperManagement() {
     },
   });
 
-  const { data: papers, isLoading } = useQuery({
-    queryKey: ["papers"],
+  const { data: projects, isLoading } = useQuery({
+    queryKey: ["projects"],
     queryFn: async () => {
       if (!session?.user?.id) return [];
       
       const { data, error } = await supabase
-        .from("papers")
+        .from("projects")
         .select("*")
-        .eq("student_id", session.user.id)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data as Paper[];
+      return data as Project[];
     },
     enabled: !!session?.user?.id,
   });
@@ -73,7 +72,7 @@ export function PaperManagement() {
       }));
 
       const { data, error } = await supabase
-        .from("papers")
+        .from("projects")
         .insert(deliverables)
         .select();
 
@@ -81,7 +80,7 @@ export function PaperManagement() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["papers"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
       setTitle("");
       setDescription("");
       toast({
@@ -107,15 +106,15 @@ export function PaperManagement() {
     return null;
   }
 
-  // Group papers by their base title (removing the type suffix)
-  const groupedPapers = papers?.reduce((acc, paper) => {
-    const baseTitle = paper.title.split(' - ')[0];
+  // Group projects by their base title (removing the type suffix)
+  const groupedProjects = projects?.reduce((acc, project) => {
+    const baseTitle = project.title.split(' - ')[0];
     if (!acc[baseTitle]) {
       acc[baseTitle] = [];
     }
-    acc[baseTitle].push(paper);
+    acc[baseTitle].push(project);
     return acc;
-  }, {} as Record<string, Paper[]>);
+  }, {} as Record<string, Project[]>);
 
   return (
     <div className="space-y-6">
@@ -152,7 +151,7 @@ export function PaperManagement() {
         {isLoading ? (
           <p>Loading projects...</p>
         ) : (
-          Object.entries(groupedPapers || {}).map(([projectTitle, projectPapers]) => (
+          Object.entries(groupedProjects || {}).map(([projectTitle, projectPapers]) => (
             <Card 
               key={projectTitle}
               className="hover:shadow-lg transition-shadow"
