@@ -25,11 +25,11 @@ export function useUserRole(userId?: string) {
 
       if (error) {
         console.error('Error fetching user role:', error);
-        return 'No Role';
+        return 'student';
       }
       
-      return data?.roles?.name || 'No Role';
+      return data?.roles?.name || 'student';
     },
-    enabled: !!userId || !!(supabase.auth.getSession()),
+    enabled: true,
   });
 }

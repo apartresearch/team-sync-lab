@@ -8,9 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { User, Task, WeeklyUpdate, Stage } from "@/types";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { useSession } from "@supabase/auth-helpers-react";
 
+// Using a UUID format for the mock user ID
 const mockUser: User = {
-  id: "1",
+  id: "123e4567-e89b-12d3-a456-426614174000", // UUID format
   name: "John Doe",
   role: "researcher",
   avatarUrl: "https://github.com/shadcn.png"
@@ -114,6 +116,7 @@ const Index = () => {
   const [tasks, setTasks] = useState(mockTasks);
   const [stages, setStages] = useState(mockStages);
   const [updates, setUpdates] = useState(mockUpdates);
+  const supabaseSession = useSession();
 
   // Show loading state instead of null
   if (isLoading) {
@@ -123,6 +126,12 @@ const Index = () => {
       </div>
     );
   }
+
+  // Use the actual authenticated user's ID if available, otherwise fall back to mock
+  const currentUser = {
+    ...mockUser,
+    id: supabaseSession?.user?.id || mockUser.id,
+  };
 
   const handleTaskComplete = (taskId: string) => {
     setTasks(tasks.map(task => 
@@ -141,7 +150,7 @@ const Index = () => {
   const handlePostUpdate = (content: string) => {
     const newUpdate: WeeklyUpdate = {
       id: Date.now().toString(),
-      userId: mockUser.id,
+      userId: currentUser.id,
       content,
       createdAt: new Date().toISOString(),
       ratings: []
@@ -152,13 +161,13 @@ const Index = () => {
   const handleRateUpdate = (updateId: string, rating: number) => {
     setUpdates(updates.map(update => {
       if (update.id === updateId) {
-        const existingRating = update.ratings.findIndex(r => r.userId === mockUser.id);
+        const existingRating = update.ratings.findIndex(r => r.userId === currentUser.id);
         const newRatings = [...update.ratings];
         
         if (existingRating >= 0) {
-          newRatings[existingRating] = { userId: mockUser.id, value: rating };
+          newRatings[existingRating] = { userId: currentUser.id, value: rating };
         } else {
-          newRatings.push({ userId: mockUser.id, value: rating });
+          newRatings.push({ userId: currentUser.id, value: rating });
         }
         
         return { ...update, ratings: newRatings };
@@ -170,7 +179,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Dashboard 
-        user={mockUser} 
+        user={currentUser}
         stages={stages} 
         tasks={tasks} 
         updates={updates} 
@@ -207,7 +216,7 @@ const Index = () => {
           <TabsContent value="updates">
             <UpdatesFeed
               updates={updates}
-              currentUser={mockUser}
+              currentUser={currentUser}
               onPostUpdate={handlePostUpdate}
               onRateUpdate={handleRateUpdate}
             />
