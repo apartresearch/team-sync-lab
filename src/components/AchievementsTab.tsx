@@ -23,8 +23,68 @@ const achievementIcons: Record<string, React.ComponentType<any>> = {
   mentor_assigned: Award,
 };
 
+// Define all possible achievements
+const defaultAchievements: Omit<Achievement, 'earned_at'>[] = [
+  {
+    id: 'paper_published',
+    type: 'paper_published',
+    points: 100,
+    title: 'First Paper Published',
+    description: 'Successfully published your first research paper'
+  },
+  {
+    id: 'review_completed',
+    type: 'review_completed',
+    points: 50,
+    title: 'Review Master',
+    description: 'Completed your first peer review'
+  },
+  {
+    id: 'blog_posted',
+    type: 'blog_posted',
+    points: 30,
+    title: 'Blogger',
+    description: 'Posted your first research blog'
+  },
+  {
+    id: 'funding_secured',
+    type: 'funding_secured',
+    points: 150,
+    title: 'Grant Winner',
+    description: 'Secured your first research funding'
+  },
+  {
+    id: 'hackathon_completed',
+    type: 'hackathon_completed',
+    points: 75,
+    title: 'Hackathon Hero',
+    description: 'Participated in your first research hackathon'
+  },
+  {
+    id: 'first_submission',
+    type: 'first_submission',
+    points: 40,
+    title: 'First Steps',
+    description: 'Submitted your first paper draft'
+  },
+  {
+    id: 'collaboration_started',
+    type: 'collaboration_started',
+    points: 60,
+    title: 'Team Player',
+    description: 'Started your first research collaboration'
+  },
+  {
+    id: 'mentor_assigned',
+    type: 'mentor_assigned',
+    points: 25,
+    title: 'Mentee',
+    description: 'Got assigned your first research mentor'
+  }
+];
+
 export function AchievementsTab() {
-  const { data: achievements, isLoading } = useQuery({
+  const { data: earnedAchievements, isLoading } = useQuery({
     queryKey: ["achievements"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -45,9 +105,20 @@ export function AchievementsTab() {
     );
   }
 
+  // Combine earned achievements with default achievements
+  const allAchievements = defaultAchievements.map(defaultAchievement => {
+    const earnedAchievement = earnedAchievements?.find(
+      earned => earned.type === defaultAchievement.type
+    );
+    return {
+      ...defaultAchievement,
+      earned_at: earnedAchievement?.earned_at || null
+    };
+  });
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-      {achievements?.map((achievement) => {
+      {allAchievements.map((achievement) => {
         const Icon = achievementIcons[achievement.type] || Trophy;
         const isUnlocked = achievement.earned_at !== null;
 
