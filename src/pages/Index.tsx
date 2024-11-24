@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Dashboard } from "@/components/Dashboard";
 import { TaskList } from "@/components/TaskList";
 import { UpdatesFeed } from "@/components/UpdatesFeed";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Task, WeeklyUpdate, Stage } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 
 // Temporary mock data until Supabase integration
 const mockUser: User = {
@@ -163,7 +165,19 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Dashboard user={mockUser} stages={stages} tasks={tasks} updates={updates} />
+      <Dashboard 
+        user={mockUser} 
+        stages={stages} 
+        tasks={tasks} 
+        updates={updates} 
+        headerActions={
+          <Link to="/profile">
+            <Button variant="outline" className="ml-4">
+              View Profile
+            </Button>
+          </Link>
+        } 
+      />
       
       <div className="max-w-7xl mx-auto p-8">
         <Tabs defaultValue="tasks" className="space-y-6">
