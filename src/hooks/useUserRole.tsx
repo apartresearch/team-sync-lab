@@ -5,8 +5,12 @@ export function useUserRole(userId?: string) {
   return useQuery({
     queryKey: ['userRole', userId],
     queryFn: async () => {
+      // Get current session if no userId provided
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user?.id) throw new Error('No user session');
+
+      // Use provided userId or fallback to current user's id
+      const targetUserId = userId || session.user.id;
 
       const { data, error } = await supabase
         .from('user_roles')
@@ -16,7 +20,7 @@ export function useUserRole(userId?: string) {
             name
           )
         `)
-        .eq('user_id', userId || session.user.id)
+        .eq('user_id', targetUserId)
         .single();
 
       if (error) {
