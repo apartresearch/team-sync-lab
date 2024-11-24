@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          description: string | null
+          earned_at: string | null
+          id: string
+          metadata: Json | null
+          points: number
+          title: string
+          type: Database["public"]["Enums"]["achievement_type"]
+          user_id: string | null
+        }
+        Insert: {
+          description?: string | null
+          earned_at?: string | null
+          id?: string
+          metadata?: Json | null
+          points?: number
+          title: string
+          type: Database["public"]["Enums"]["achievement_type"]
+          user_id?: string | null
+        }
+        Update: {
+          description?: string | null
+          earned_at?: string | null
+          id?: string
+          metadata?: Json | null
+          points?: number
+          title?: string
+          type?: Database["public"]["Enums"]["achievement_type"]
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       paper_tasks: {
         Row: {
           assigned_to: string | null
@@ -196,6 +237,15 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      achievement_type:
+        | "paper_published"
+        | "review_completed"
+        | "blog_posted"
+        | "funding_secured"
+        | "hackathon_completed"
+        | "first_submission"
+        | "collaboration_started"
+        | "mentor_assigned"
       deliverable_type:
         | "paper"
         | "blog_post"

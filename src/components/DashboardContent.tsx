@@ -1,32 +1,23 @@
 import { useState } from "react";
-import { User, Task, WeeklyUpdate, Stage } from "@/types";
+import { User, WeeklyUpdate, Stage } from "@/types";
 import { UpdatesFeed } from "@/components/UpdatesFeed";
 import { PaperManagement } from "@/components/PaperManagement";
-import { TaskList } from "@/components/TaskList";
+import { AchievementsTab } from "@/components/AchievementsTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface DashboardContentProps {
   currentUser: User;
-  initialTasks: Task[];
   initialStages: Stage[];
   initialUpdates: WeeklyUpdate[];
 }
 
 export function DashboardContent({ 
   currentUser, 
-  initialTasks, 
   initialStages, 
   initialUpdates 
 }: DashboardContentProps) {
-  const [tasks, setTasks] = useState(initialTasks);
   const [stages, setStages] = useState(initialStages);
   const [updates, setUpdates] = useState(initialUpdates);
-
-  const handleTaskComplete = (taskId: string) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    ));
-  };
 
   const handleRequestReview = (stageId: string) => {
     setStages(stages.map(stage =>
@@ -69,7 +60,7 @@ export function DashboardContent({
     <Tabs defaultValue="papers" className="space-y-6">
       <TabsList>
         <TabsTrigger value="papers">Papers</TabsTrigger>
-        <TabsTrigger value="tasks">Tasks</TabsTrigger>
+        <TabsTrigger value="achievements">Achievements</TabsTrigger>
         <TabsTrigger value="updates">Updates</TabsTrigger>
       </TabsList>
       
@@ -77,13 +68,8 @@ export function DashboardContent({
         <PaperManagement />
       </TabsContent>
 
-      <TabsContent value="tasks">
-        <TaskList
-          tasks={tasks}
-          stages={stages}
-          onTaskComplete={handleTaskComplete}
-          onRequestReview={handleRequestReview}
-        />
+      <TabsContent value="achievements">
+        <AchievementsTab />
       </TabsContent>
       
       <TabsContent value="updates">
