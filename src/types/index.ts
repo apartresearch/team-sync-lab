@@ -14,7 +14,7 @@ export interface Stage {
   name: string;
   description: string;
   status: StageStatus;
-  tasks: Task[];
+  tasks: string[];
   reviewerId?: string;
   reviewNotes?: string;
 }
