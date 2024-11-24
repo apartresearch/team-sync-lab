@@ -21,25 +21,34 @@ const Profile = () => {
         return;
       }
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", session.user.id)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", session.user.id)
+          .maybeSingle();
 
-      if (error) {
+        if (error) {
+          toast({
+            title: "Error",
+            description: "Failed to fetch profile",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (data) {
+          setFullName(data.full_name || "");
+        }
+      } catch (error) {
         toast({
           title: "Error",
-          description: "Failed to fetch profile",
+          description: "An unexpected error occurred",
           variant: "destructive",
         });
-        return;
+      } finally {
+        setLoading(false);
       }
-
-      if (data) {
-        setFullName(data.full_name || "");
-      }
-      setLoading(false);
     };
 
     fetchProfile();
