@@ -30,11 +30,14 @@ export function Dashboard({ user, stages, tasks, updates, headerActions }: Dashb
             name
           )
         `)
-        .eq('user_id', session.user.id)
-        .single();
+        .eq('user_id', session.user.id);
 
       if (error) throw error;
-      return data?.roles?.name || 'Unknown';
+      
+      // Handle case where no role is found
+      if (!data || data.length === 0) return 'No Role';
+      
+      return data[0]?.roles?.name || 'Unknown';
     },
   });
 
