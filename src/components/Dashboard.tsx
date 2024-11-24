@@ -2,6 +2,8 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { User, Task, WeeklyUpdate, Stage } from "@/types";
 import { Shield, ListChecks, MessageSquare, CheckCircle2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 
 interface DashboardProps {
   user: User;
@@ -15,6 +17,25 @@ export function Dashboard({ user, stages, tasks, updates, headerActions }: Dashb
   const completedTasks = tasks.filter(task => task.completed).length;
   const progress = (completedTasks / tasks.length) * 100;
 
+  const { data: userRole } = useQuery({
+    queryKey: ['userRole', user.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select(`
+          role_id,
+          roles (
+            name
+          )
+        `)
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data?.roles?.name || 'Unknown';
+    },
+  });
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
@@ -25,7 +46,7 @@ export function Dashboard({ user, stages, tasks, updates, headerActions }: Dashb
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 bg-secondary px-4 py-2 rounded-lg">
             <Shield className="w-4 h-4" />
-            <span className="capitalize">{user.role}</span>
+            <span className="capitalize">{userRole}</span>
           </div>
           {headerActions}
         </div>

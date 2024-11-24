@@ -1,21 +1,44 @@
 import { useState } from "react";
-import { Task, UserRole, Stage } from "@/types";
+import { Task, Stage } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Lock, ChevronDown, ChevronUp } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 
 interface TaskListProps {
   tasks: Task[];
   stages: Stage[];
-  userRole: UserRole;
   onTaskComplete: (taskId: string) => void;
   onRequestReview: (stageId: string) => void;
 }
 
-export function TaskList({ tasks, stages, userRole, onTaskComplete, onRequestReview }: TaskListProps) {
+export function TaskList({ tasks, stages, onTaskComplete, onRequestReview }: TaskListProps) {
   const [expandedStages, setExpandedStages] = useState<string[]>(stages.map(s => s.id));
   const roleLevel = { student: 0, researcher: 1, advisor: 2 };
+
+  const { data: userRole } = useQuery({
+    queryKey: ['userRole'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) throw new Error('No user session');
+
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select(`
+          role_id,
+          roles (
+            name
+          )
+        `)
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (error) throw error;
+      return data?.roles?.name?.toLowerCase() || 'student';
+    },
+  });
 
   const toggleStage = (stageId: string) => {
     setExpandedStages(prev =>
@@ -54,7 +77,7 @@ export function TaskList({ tasks, stages, userRole, onTaskComplete, onRequestRev
             {isExpanded && (
               <div className="mt-4 space-y-4">
                 {stageTasks.map((task) => {
-                  const isLocked = roleLevel[userRole] < roleLevel[task.requiredRole];
+                  const isLocked = roleLevel[userRole || 'student'] < roleLevel[task.requiredRole];
                   
                   return (
                     <div key={task.id} className="flex items-center gap-4">

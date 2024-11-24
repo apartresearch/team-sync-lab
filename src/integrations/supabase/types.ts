@@ -132,26 +132,52 @@ export type Database = {
         }
         Relationships: []
       }
+      roles: {
+        Row: {
+          created_at: string
+          id: number
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
           id: number
-          role: string | null
+          role_id: number | null
           user_id: string | null
         }
         Insert: {
           created_at?: string
           id?: number
-          role?: string | null
+          role_id?: number | null
           user_id?: string | null
         }
         Update: {
           created_at?: string
           id?: number
-          role?: string | null
+          role_id?: number | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
