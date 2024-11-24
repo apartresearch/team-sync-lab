@@ -13,20 +13,15 @@ export function DiscordAuth() {
   const handleDiscordLogin = async () => {
     try {
       if (isDevelopment) {
-        // First, try to create the development account
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: 'dev@example.com',
-          password: 'development-password',
-        });
-
-        if (signUpError && !signUpError.message.includes('User already registered')) {
-          throw signUpError;
-        }
-
-        // Now try to sign in
         const { data, error } = await supabase.auth.signInWithPassword({
           email: 'dev@example.com',
           password: 'development-password',
+          options: {
+            shouldCreateUser: true,
+            data: {
+              email_confirmed_at: new Date().toISOString(),
+            }
+          }
         });
 
         if (error) throw error;
