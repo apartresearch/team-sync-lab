@@ -14,11 +14,6 @@ export default function Login() {
     }
   }, [session, isLoading, navigate]);
 
-  // If still loading auth state, show nothing to prevent flash of content
-  if (isLoading) {
-    return null;
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="p-8 space-y-6 w-full max-w-md">

@@ -110,16 +110,18 @@ const mockUpdates: WeeklyUpdate[] = [
 ];
 
 const Index = () => {
-  // Add authentication check
-  const { isLoading } = useRequireAuth();
-
+  const { session, isLoading } = useRequireAuth();
   const [tasks, setTasks] = useState(mockTasks);
   const [stages, setStages] = useState(mockStages);
   const [updates, setUpdates] = useState(mockUpdates);
 
-  // If still loading auth state, show nothing to prevent flash of content
+  // Show loading state instead of null
   if (isLoading) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
   }
 
   const handleTaskComplete = (taskId: string) => {
