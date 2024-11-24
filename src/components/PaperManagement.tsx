@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
+import type { Database } from "@/integrations/supabase/types";
+
+type Paper = Database['public']['Tables']['papers']['Row'];
 
 export function PaperManagement() {
   const [title, setTitle] = useState("");
@@ -42,7 +45,7 @@ export function PaperManagement() {
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data as Paper[];
     },
     enabled: !!session?.user?.id,
   });
@@ -60,6 +63,7 @@ export function PaperManagement() {
             title,
             description,
             student_id: session.user.id,
+            status: 'draft',
           },
         ])
         .select()
