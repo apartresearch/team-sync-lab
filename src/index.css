@@ -40,9 +40,9 @@
  
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border text-left;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground text-left;
   }
 }
