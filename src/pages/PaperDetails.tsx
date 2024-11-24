@@ -4,9 +4,12 @@ import { supabase } from "@/lib/supabase";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { PaperTodoList } from "@/components/PaperTodoList";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { defaultPaperTasks } from "@/config/defaultPaperTasks";
 
 export default function PaperDetails() {
   const { paperId } = useParams();
+  const stages = Object.keys(defaultPaperTasks);
 
   const { data: paper, isLoading: paperLoading } = useQuery({
     queryKey: ["paper", paperId],
@@ -52,7 +55,7 @@ export default function PaperDetails() {
         <CardContent>
           <p className="text-muted-foreground mb-4">{paper?.description}</p>
           <div className="space-y-2">
-            <p className="text-sm font-medium">Progress</p>
+            <p className="text-sm font-medium">Overall Progress</p>
             <Progress value={progress} />
             <p className="text-sm text-muted-foreground">
               {completedTasks} of {totalTasks} tasks completed
@@ -61,7 +64,29 @@ export default function PaperDetails() {
         </CardContent>
       </Card>
 
-      <PaperTodoList paperId={paperId!} currentStage={paper?.stage || "overview"} />
+      <Tabs defaultValue={paper?.stage || "overview"} className="space-y-4">
+        <TabsList className="w-full justify-start">
+          {stages.map((stage) => (
+            <TabsTrigger 
+              key={stage} 
+              value={stage}
+              className={stage === paper?.stage ? "bg-primary text-primary-foreground" : ""}
+            >
+              {stage.charAt(0).toUpperCase() + stage.slice(1)}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        {stages.map((stage) => (
+          <TabsContent key={stage} value={stage}>
+            <PaperTodoList 
+              paperId={paperId!} 
+              currentStage={stage} 
+              isCurrentStage={stage === paper?.stage}
+            />
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
   );
 }

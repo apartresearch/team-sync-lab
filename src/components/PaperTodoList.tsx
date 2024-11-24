@@ -11,16 +11,17 @@ import { defaultPaperTasks } from "@/config/defaultPaperTasks";
 interface PaperTodoListProps {
   paperId: string;
   currentStage: string;
+  isCurrentStage: boolean;
 }
 
-export function PaperTodoList({ paperId, currentStage }: PaperTodoListProps) {
+export function PaperTodoList({ paperId, currentStage, isCurrentStage }: PaperTodoListProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: userRole } = useUserRole();
   const isAdvisor = userRole === "advisor";
 
   const { data: tasks, isLoading } = useQuery({
-    queryKey: ["paper-tasks", paperId],
+    queryKey: ["paper-tasks", paperId, currentStage],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("paper_tasks")
@@ -86,7 +87,7 @@ export function PaperTodoList({ paperId, currentStage }: PaperTodoListProps) {
 
   const advanceStage = useMutation({
     mutationFn: async () => {
-      const stages = ["overview", "research", "writing", "review", "final"];
+      const stages = Object.keys(defaultPaperTasks);
       const currentIndex = stages.indexOf(currentStage);
       const nextStage = stages[currentIndex + 1];
 
@@ -126,13 +127,18 @@ export function PaperTodoList({ paperId, currentStage }: PaperTodoListProps) {
               <Checkbox
                 checked={task.status === "completed"}
                 onCheckedChange={(checked) => {
-                  updateTaskStatus.mutate({
-                    taskId: task.id,
-                    completed: checked as boolean,
-                  });
+                  if (isCurrentStage) {
+                    updateTaskStatus.mutate({
+                      taskId: task.id,
+                      completed: checked as boolean,
+                    });
+                  }
                 }}
+                disabled={!isCurrentStage}
               />
-              <span className="font-medium">{task.title}</span>
+              <span className={`font-medium ${!isCurrentStage && "text-muted-foreground"}`}>
+                {task.title}
+              </span>
             </div>
             {task.description && (
               <p className="text-sm text-muted-foreground ml-6">{task.description}</p>
@@ -140,7 +146,7 @@ export function PaperTodoList({ paperId, currentStage }: PaperTodoListProps) {
           </div>
         ))}
 
-        {isAdvisor && allTasksCompleted && (
+        {isAdvisor && isCurrentStage && allTasksCompleted && (
           <Button 
             onClick={() => advanceStage.mutate()}
             className="w-full mt-4"
