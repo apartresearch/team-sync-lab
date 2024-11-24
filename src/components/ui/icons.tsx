@@ -1,6 +1,6 @@
 import { LucideProps } from "lucide-react";
-import { Discord } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 
 export const Icons = {
-  discord: Discord,
+  discord: MessageSquare,
 };
