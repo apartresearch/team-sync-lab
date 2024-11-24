@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Dashboard } from "@/components/Dashboard";
 import { TaskList } from "@/components/TaskList";
@@ -7,14 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Task, WeeklyUpdate, Stage } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-
-// Temporary mock data until Supabase integration
-const mockUser: User = {
-  id: "1",
-  name: "John Doe",
-  role: "researcher",
-  avatarUrl: "https://github.com/shadcn.png"
-};
+import { supabase } from "@/lib/supabase";
 
 const mockStages: Stage[] = [
   {
@@ -113,7 +106,32 @@ const Index = () => {
   const [tasks, setTasks] = useState(mockTasks);
   const [stages, setStages] = useState(mockStages);
   const [updates, setUpdates] = useState(mockUpdates);
+  const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username, full_name')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile) {
+          setUser({
+            id: session.user.id,
+            name: profile.username || profile.full_name || 'User',
+            role: 'researcher',
+            avatarUrl: session.user.user_metadata.avatar_url
+          });
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   const handleTaskComplete = (taskId: string) => {
     setTasks(tasks.map(task => 
@@ -137,7 +155,7 @@ const Index = () => {
   const handlePostUpdate = (content: string) => {
     const newUpdate: WeeklyUpdate = {
       id: Date.now().toString(),
-      userId: mockUser.id,
+      userId: user?.id || '',
       content,
       createdAt: new Date().toISOString(),
       ratings: []
@@ -148,13 +166,13 @@ const Index = () => {
   const handleRateUpdate = (updateId: string, rating: number) => {
     setUpdates(updates.map(update => {
       if (update.id === updateId) {
-        const existingRating = update.ratings.findIndex(r => r.userId === mockUser.id);
+        const existingRating = update.ratings.findIndex(r => r.userId === user?.id);
         const newRatings = [...update.ratings];
         
         if (existingRating >= 0) {
-          newRatings[existingRating] = { userId: mockUser.id, value: rating };
+          newRatings[existingRating] = { userId: user?.id || '', value: rating };
         } else {
-          newRatings.push({ userId: mockUser.id, value: rating });
+          newRatings.push({ userId: user?.id || '', value: rating });
         }
         
         return { ...update, ratings: newRatings };
@@ -163,17 +181,19 @@ const Index = () => {
     }));
   };
 
+  if (!user) return null;
+
   return (
     <div className="min-h-screen bg-background">
       <Dashboard 
-        user={mockUser} 
+        user={user}
         stages={stages} 
         tasks={tasks} 
         updates={updates} 
         headerActions={
           <Link to="/profile">
-            <Button variant="outline" className="ml-4">
-              View Profile
+            <Button variant="outline">
+              Edit Profile
             </Button>
           </Link>
         } 
@@ -190,7 +210,7 @@ const Index = () => {
             <TaskList
               tasks={tasks}
               stages={stages}
-              userRole={mockUser.role}
+              userRole={user.role}
               onTaskComplete={handleTaskComplete}
               onRequestReview={handleRequestReview}
             />
@@ -199,7 +219,7 @@ const Index = () => {
           <TabsContent value="updates">
             <UpdatesFeed
               updates={updates}
-              currentUser={mockUser}
+              currentUser={user}
               onPostUpdate={handlePostUpdate}
               onRateUpdate={handleRateUpdate}
             />
