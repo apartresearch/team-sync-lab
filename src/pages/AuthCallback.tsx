@@ -7,30 +7,49 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handleAuthCallback = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (session) {
-        // Insert the user role if it doesn't exist
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .upsert(
-            { 
-              user_id: session.user.id,
-              role: 'researcher' 
-            },
-            { 
-              onConflict: 'user_id',
-              ignoreDuplicates: true 
-            }
-          );
+      try {
+        // Handle hash fragment if present (for implicit grant)
+        if (window.location.hash) {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error) throw error;
+          if (session) {
+            // Insert the user role if it doesn't exist
+            const { error: roleError } = await supabase
+              .from('user_roles')
+              .upsert(
+                { 
+                  user_id: session.user.id,
+                  role: 'researcher' 
+                },
+                { 
+                  onConflict: 'user_id',
+                  ignoreDuplicates: true 
+                }
+              );
 
-        if (roleError) {
-          console.error('Error setting user role:', roleError);
+            if (roleError) {
+              console.error('Error setting user role:', roleError);
+            }
+
+            // Redirect to home page
+            navigate('/', { replace: true });
+            return;
+          }
         }
 
-        navigate('/');
-      } else {
-        navigate('/login');
+        // Handle code exchange (for authorization code flow)
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) throw error;
+        if (session) {
+          navigate('/', { replace: true });
+        } else {
+          navigate('/login', { replace: true });
+        }
+      } catch (error) {
+        console.error('Error during authentication:', error);
+        navigate('/login', { replace: true });
       }
     };
 
