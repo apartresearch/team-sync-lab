@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 import { Dashboard } from "@/components/Dashboard";
 import { TaskList } from "@/components/TaskList";
 import { UpdatesFeed } from "@/components/UpdatesFeed";
+import { PaperManagement } from "@/components/PaperManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Task, WeeklyUpdate, Stage } from "@/types";
-import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import { User, Task, WeeklyUpdate, Stage } from "@/types";
 
 // Temporary mock data until Supabase integration
 const mockUser: User = {
@@ -113,7 +113,6 @@ const Index = () => {
   const [tasks, setTasks] = useState(mockTasks);
   const [stages, setStages] = useState(mockStages);
   const [updates, setUpdates] = useState(mockUpdates);
-  const { toast } = useToast();
 
   const handleTaskComplete = (taskId: string) => {
     setTasks(tasks.map(task => 
@@ -127,11 +126,6 @@ const Index = () => {
         ? { ...stage, status: 'pending_review' }
         : stage
     ));
-    
-    toast({
-      title: "Review Requested",
-      description: "Your advisor will be notified to review this stage.",
-    });
   };
 
   const handlePostUpdate = (content: string) => {
@@ -180,12 +174,17 @@ const Index = () => {
       />
       
       <div className="max-w-7xl mx-auto p-8">
-        <Tabs defaultValue="tasks" className="space-y-6">
+        <Tabs defaultValue="papers" className="space-y-6">
           <TabsList>
+            <TabsTrigger value="papers">Papers</TabsTrigger>
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="updates">Updates</TabsTrigger>
           </TabsList>
           
+          <TabsContent value="papers">
+            <PaperManagement />
+          </TabsContent>
+
           <TabsContent value="tasks">
             <TaskList
               tasks={tasks}
