@@ -113,25 +113,40 @@ const Index = () => {
     const fetchUserProfile = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('username, full_name')
-          .eq('id', session.user.id)
-          .single();
+        try {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('username, full_name')
+            .eq('id', session.user.id)
+            .maybeSingle();
 
-        if (profile) {
+          if (error) {
+            toast({
+              title: "Error",
+              description: "Failed to fetch profile",
+              variant: "destructive",
+            });
+            return;
+          }
+
           setUser({
             id: session.user.id,
-            name: profile.username || profile.full_name || 'User',
+            name: profile?.username || profile?.full_name || 'User',
             role: 'researcher',
             avatarUrl: session.user.user_metadata.avatar_url
+          });
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "An unexpected error occurred",
+            variant: "destructive",
           });
         }
       }
     };
 
     fetchUserProfile();
-  }, []);
+  }, [toast]);
 
   const handleTaskComplete = (taskId: string) => {
     setTasks(tasks.map(task => 
