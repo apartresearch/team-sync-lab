@@ -40,27 +40,27 @@ export function ProjectCreationForm() {
         type: type.value,
       }));
 
+      // Insert projects first
       const { data: projectsData, error: projectsError } = await supabase
         .from("projects")
         .insert(deliverables)
         .select();
 
       if (projectsError) throw projectsError;
+      if (!projectsData) throw new Error("No projects were created");
 
       // Create project_members entries for each project
-      if (projectsData) {
-        const memberEntries = projectsData.map(project => ({
-          project_id: project.id,
-          user_id: session.user.id,
-          role: 'owner'
-        }));
+      const memberEntries = projectsData.map(project => ({
+        project_id: project.id,
+        user_id: session.user.id,
+        role: 'owner'
+      }));
 
-        const { error: membersError } = await supabase
-          .from("project_members")
-          .insert(memberEntries);
+      const { error: membersError } = await supabase
+        .from("project_members")
+        .insert(memberEntries);
 
-        if (membersError) throw membersError;
-      }
+      if (membersError) throw membersError;
 
       return projectsData;
     },
