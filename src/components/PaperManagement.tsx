@@ -39,7 +39,7 @@ export function PaperManagement() {
     },
   });
 
-  const { data: projects, isLoading } = useQuery({
+  const { data: projects, isLoading, error } = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
       if (!session?.user?.id) return [];
@@ -49,7 +49,12 @@ export function PaperManagement() {
         .select("*")
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Projects query error:", error);
+        throw error;
+      }
+      
+      console.log("Projects query successful:", data);
       return data as Project[];
     },
     enabled: !!session?.user?.id,
@@ -61,7 +66,6 @@ export function PaperManagement() {
         throw new Error("User not authenticated");
       }
 
-      // Create all deliverable types for this project
       const deliverables = DELIVERABLE_TYPES.map(type => ({
         title: `${title} - ${type.label}`,
         description,
@@ -76,7 +80,10 @@ export function PaperManagement() {
         .insert(deliverables)
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Project creation error:", error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
@@ -89,6 +96,7 @@ export function PaperManagement() {
       });
     },
     onError: (error) => {
+      console.error("Project creation mutation error:", error);
       toast({
         title: "Error",
         description: "Failed to create research project: " + error.message,
@@ -96,6 +104,14 @@ export function PaperManagement() {
       });
     },
   });
+
+  if (error) {
+    toast({
+      title: "Error",
+      description: "Failed to load projects: " + error.message,
+      variant: "destructive",
+    });
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
