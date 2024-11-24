@@ -41,13 +41,12 @@ export function DiscordAuth() {
         navigate('/');
       } else {
         const redirectTo = `${window.location.origin}/auth/callback`;
-        // In production, use Discord OAuth with implicit grant
+        // In production, use Discord OAuth
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'discord',
           options: {
             redirectTo,
             scopes: 'identify email',
-            flowType: 'implicit',
           }
         });
 
